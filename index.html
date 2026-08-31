@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>This Is Me</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        /* ── reset & base ── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0e0e12;
+            color: #f0f0f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: radial-gradient(circle at 10% 20%, rgba(120, 80, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 80, 180, 0.08) 0%, transparent 50%);
+        }
+
+        /* ── main card ── */
+        .card {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(22, 22, 30, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 48px;
+            padding: 40px 44px 44px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        /* ── header / avatar row ── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 36px;
+        }
+
+        .avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 12px 32px rgba(167, 139, 250, 0.25);
+            user-select: none;
+            transition: transform 0.3s ease;
+        }
+        .avatar:hover {
+            transform: scale(1.03);
+        }
+
+        .header-info h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #e4e4f0, #b8b0e8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-info .tagline {
+            font-size: 16px;
+            font-weight: 500;
+            color: #a8a4c0;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header-info .tagline .badge {
+            background: rgba(167, 139, 250, 0.18);
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, 0.15);
+        }
+        .header-info .tagline .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
+            margin-right: 4px;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(0.85);
+            }
+        }
+
+        /* ── tabs ── */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 60px;
+            padding: 6px;
+            margin-bottom: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1 1 auto;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: #a8a4c0;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: #e4e4f0;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
+        }
+
+        /* ── tab panels ── */
+        .panel {
+            display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        .panel.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── about panel ── */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+        @media (max-width: 680px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .about-text p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #d0cce6;
+            margin-bottom: 16px;
+        }
+        .about-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .info-list li {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 15px;
+            color: #d0cce6;
+        }
+        .info-list li .icon {
+            font-size: 20px;
+            width: 32px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .info-list li strong {
+            color: #f0f0f5;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* ── work panel ── */
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .work-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 24px 22px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.25s ease;
+        }
+        .work-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-4px);
+            border-color: rgba(167, 139, 250, 0.2);
+        }
+        .work-card .emoji-big {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .work-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f0f0f5;
+            margin-bottom: 6px;
+        }
+        .work-card p {
+            font-size: 14px;
+            color: #a8a4c0;
+            line-height: 1.5;
+        }
+        .work-card .pill {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(167, 139, 250, 0.15);
+            color: #c4b5fd;
+            padding: 4px 14px;
+            border-radius: 40px;
+            border: 1px solid rgba(167, 139, 250, 0.08);
+        }
+
+        /* ── message panel ── */
+        .msg-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-width: 560px;
+        }
+        .msg-form input,
+        .msg-form textarea {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: #f0f0f5;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        .msg-form input::placeholder,
+        .msg-form textarea::placeholder {
+            color: #6a6690;
+        }
+        .msg-form input:focus,
+        .msg-form textarea:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.12);
+        }
+        .msg-form textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+        .msg-form .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 480px) {
+            .msg-form .row-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            border: none;
+            border-radius: 60px;
+            padding: 16px 32px;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 28px rgba(124, 58, 237, 0.3);
+            align-self: flex-start;
+            letter-spacing: -0.2px;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 36px rgba(124, 58, 237, 0.45);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .msg-success {
+            display: none;
+            margin-top: 12px;
+            padding: 16px 20px;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 16px;
+            color: #6ee7b7;
+            font-weight: 500;
+        }
+        .msg-success.show {
+            display: block;
+        }
+
+        /* ── chat panel ── */
+        .chat-container {
+            max-width: 560px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            padding: 24px 24px 12px;
+            max-height: 340px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(167, 139, 250, 0.3);
+            border-radius: 8px;
+        }
+
+        .chat-bubble {
+            max-width: 82%;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+            animation: fadeUp 0.3s ease;
+            word-break: break-word;
+        }
+        .chat-bubble.me {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            color: #fff;
+            border-bottom-right-radius: 6px;
+        }
+        .chat-bubble.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.07);
+            color: #d0cce6;
+            border-bottom-left-radius: 6px;
+        }
+        .chat-bubble .time {
+            font-size: 11px;
+            opacity: 0.5;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .chat-input-row input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: #f0f0f5;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .chat-input-row input::placeholder {
+            color: #6a6690;
+        }
+        .chat-input-row input:focus {
+            border-color: #a78bfa;
+        }
+        .chat-input-row button {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            border: none;
+            border-radius: 40px;
+            padding: 0 26px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .chat-input-row button:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+        }
+        .chat-input-row button:active {
+            transform: scale(0.95);
+        }
+
+        .chat-typing {
+            font-size: 14px;
+            color: #6a6690;
+            padding: 0 24px 12px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-typing.show {
+            display: flex;
+        }
+        .chat-typing .dots span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #6a6690;
+            margin: 0 2px;
+            animation: dot-bounce 1.4s infinite both;
+        }
+        .chat-typing .dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .chat-typing .dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes dot-bounce {
+            0%,
+            80%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.4;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ── responsive tweaks ── */
+        @media (max-width: 600px) {
+            .card {
+                padding: 24px 18px 28px;
+                border-radius: 32px;
+            }
+            .header {
+                gap: 16px;
+            }
+            .avatar {
+                width: 68px;
+                height: 68px;
+                font-size: 32px;
+            }
+            .header-info h1 {
+                font-size: 26px;
+            }
+            .tab-btn {
+                font-size: 13px;
+                padding: 10px 16px;
+                flex: 1 1 auto;
+            }
+            .work-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .btn-primary {
+                width: 100%;
+                text-align: center;
+            }
+            .chat-bubble {
+                max-width: 92%;
+            }
+        }
+        @media (max-width: 420px) {
+            .work-grid {
+                grid-template-columns: 1fr;
+            }
+            .tabs {
+                gap: 4px;
+                padding: 4px;
+                border-radius: 32px;
+            }
+            .tab-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* ── floating glow accents ── */
+        .glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .glow.g1 {
+            width: 400px;
+            height: 400px;
+            top: -120px;
+            right: -120px;
+            background: rgba(124, 58, 237, 0.12);
+        }
+        .glow.g2 {
+            width: 350px;
+            height: 350px;
+            bottom: -100px;
+            left: -100px;
+            background: rgba(219, 39, 119, 0.10);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- background glows -->
+    <div class="glow g1"></div>
+    <div class="glow g2"></div>
+
+    <!-- ─── MAIN CARD ─── -->
+    <div class="card">
+
+        <!-- header -->
+        <div class="header">
+            <div class="avatar">👋</div>
+            <div class="header-info">
+                <h1>Alex Rivera</h1>
+                <div class="tagline">
+                    <span>✦ Product Designer &amp; Builder</span>
+                    <span class="badge">📍 NYC</span>
+                    <span class="badge" style="display:inline-flex;align-items:center;gap:6px;">
+                        <span class="status-dot"></span> Available
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- tabs -->
+        <div class="tabs" role="tablist">
+            <button class="tab-btn active" data-tab="about" role="tab">About</button>
+            <button class="tab-btn" data-tab="work" role="tab">Work</button>
+            <button class="tab-btn" data-tab="message" role="tab">Message</button>
+            <button class="tab-btn" data-tab="chat" role="tab">Chat with Me</button>
+        </div>
+
+        <!-- ─── ABOUT PANEL ─── -->
+        <div class="panel active" id="panel-about" role="tabpanel">
+            <div class="about-grid">
+                <div class="about-text">
+                    <p>
+                        Hey there! I'm Alex — a creative product designer and front-end
+                        builder with a passion for crafting digital experiences that feel
+                        like magic. I blend clean aesthetics with thoughtful interaction,
+                        always putting people first.
+                    </p>
+                    <p>
+                        Currently exploring the intersection of AI and design tools,
+                        while tinkering with side projects that make me smile. When I'm
+                        not at my desk, you'll find me snapping photos, sipping matcha,
+                        or hunting for the best vinyl finds.
+                    </p>
+                </div>
+                <ul class="info-list">
+                    <li><span class="icon">🎯</span> <strong>Focus:</strong> Product Design, UI/UX, Front-end</li>
+                    <li><span class="icon">🧠</span> <strong>Currently:</strong> Building a design system for AI-native apps</li>
+                    <li><span class="icon">📚</span> <strong>Reading:</strong> "The Design of Everyday Things"</li>
+                    <li><span class="icon">🎧</span> <strong>Listening:</strong> Ambient &amp; Lo-Fi beats</li>
+                    <li><span class="icon">🌱</span> <strong>Learning:</strong> SwiftUI &amp; 3D prototyping</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ─── WORK PANEL ─── -->
+        <div class="panel" id="panel-work" role="tabpanel">
+            <div class="work-grid">
+                <div class="work-card">
+                    <span class="emoji-big">✨</span>
+                    <h3>AI Design System</h3>
+                    <p>Component library &amp; patterns for AI-native interfaces. Used by 8+ product teams.</p>
+                    <span class="pill">in progress</span>
+                </div>
+                <div class="work-card">
+                    <span class="emoji-big">📱</span>
+                    <h3>Pulse — Wellness App</h3>
+                    <p>Minimalist daily check-in app with haptic feedback and mood tracking.</p>
+                    <span class="pill">v2.0 shipping soon</span>
+                </div>
+                <div class="work-card">
+                    <span class="emoji-big">⚡</span>
+                    <h3>Portfolio 2.0</h3>
+                    <p>Rebuilding my personal site with motion, 3D, and a playful personality.</p>
+                    <span class="pill">design phase</span>
+                </div>
+                <div class="work-card">
+                    <span class="emoji-big">🎙️</span>
+                    <h3>Design &amp; Chill Podcast</h3>
+                    <p>Weekly conversations with designers about craft, career, and creativity.</p>
+                    <span class="pill">season 3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── MESSAGE PANEL ─── -->
+        <div class="panel" id="panel-message" role="tabpanel">
+            <form class="msg-form" id="msgForm">
+                <div class="row-2">
+                    <input type="text" placeholder="Your name" id="msgName" required />
+                    <input type="email" placeholder="Your email" id="msgEmail" required />
+                </div>
+                <input type="text" placeholder="Subject" id="msgSubject" />
+                <textarea placeholder="What's on your mind? …" id="msgBody" required></textarea>
+                <button type="submit" class="btn-primary">Send message ✦</button>
+                <div class="msg-success" id="msgSuccess">
+                    ✦ Thanks! Your message has been sent. I'll get back to you soon.
+                </div>
+            </form>
+        </div>
+
+        <!-- ─── CHAT PANEL ─── -->
+        <div class="panel" id="panel-chat" role="tabpanel">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-bubble bot">
+                        Hey! I'm Alex's digital twin 👋 Ask me anything — about design, projects, or just say hi!
+                        <span class="time">now</span>
+                    </div>
+                </div>
+                <div class="chat-typing" id="chatTyping">
+                    <span>Alex is typing</span>
+                    <span class="dots"><span></span><span></span><span></span></span>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Type a message …" autocomplete="off" />
+                    <button id="chatSendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ─── TABS ───────────────────────────────────────────────
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const panels = {
+            about: document.getElementById('panel-about'),
+            work: document.getElementById('panel-work'),
+            message: document.getElementById('panel-message'),
+            chat: document.getElementById('panel-chat'),
+        };
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                // update buttons
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // update panels
+                Object.keys(panels).forEach(key => {
+                    panels[key].classList.toggle('active', key === tab);
+                });
+                // if chat panel, scroll to bottom
+                if (tab === 'chat') {
+                    const container = document.getElementById('chatMessages');
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
+        });
+
+        // ─── MESSAGE FORM ─────────────────────────────────────
+        const msgForm = document.getElementById('msgForm');
+        const msgSuccess = document.getElementById('msgSuccess');
+
+        msgForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('msgName').value.trim();
+            const email = document.getElementById('msgEmail').value.trim();
+            const subject = document.getElementById('msgSubject').value.trim();
+            const body = document.getElementById('msgBody').value.trim();
+
+            if (!name || !email || !body) {
+                alert('Please fill in your name, email, and message.');
+                return;
+            }
+
+            // mock send
+            msgSuccess.classList.add('show');
+            msgForm.reset();
+            setTimeout(() => {
+                msgSuccess.classList.remove('show');
+            }, 5000);
+        });
+
+        // ─── CHAT ──────────────────────────────────────────────
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatTyping = document.getElementById('chatTyping');
+
+        // Bot responses (fun & varied)
+        const botReplies = [
+            "That's awesome! Tell me more about that. 😄",
+            "I love that! Have you tried using Figma for that?",
+            "Oh, interesting! I'm actually working on something similar right now.",
+            "Haha, great question! Let me think … 🤔",
+            "Totally! I'd recommend checking out some of the projects in my Work tab.",
+            "You're speaking my language! Keep going — I'm all ears.",
+            "Nice! That reminds me of a design sprint I did last month.",
+            "I'm glad you asked! I'd say start with a simple prototype and iterate.",
+            "That's so cool! What inspired you?",
+            "Honestly, I'm just a bot, but I try my best. 😅",
+            "Whoa, deep stuff. I'm here for it.",
+            "I think you'd really enjoy the podcast I'm working on — check the Work tab!",
+            "Thanks for chatting! You're making my digital day.",
+            "Ooh, I've been reading about that. Let's dive in!",
+            "👀 I'm listening … tell me everything.",
+        ];
+
+        function addMessage(text, sender, delay = 0) {
+            setTimeout(() => {
+                const bubble = document.createElement('div');
+                bubble.className = `chat-bubble ${sender}`;
+                const time = new Date();
+                const timeStr = time.getHours().toString().padStart(2, '0') + ':' +
+                    time.getMinutes().toString().padStart(2, '0');
+                bubble.innerHTML = `${text} <span class="time">${timeStr}</span>`;
+                chatMessages.appendChild(bubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, delay);
+        }
+
+        function botReply(userMsg) {
+            chatTyping.classList.add('show');
+            const delay = 800 + Math.random() * 1200;
+            setTimeout(() => {
+                chatTyping.classList.remove('show');
+                const reply = botReplies[Math.floor(Math.random() * botReplies.length)];
+                addMessage(reply, 'bot', 0);
+            }, delay);
+        }
+
+        function handleSend() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            addMessage(text, 'me', 0);
+            chatInput.value = '';
+            chatInput.focus();
+            botReply(text);
+        }
+
+        chatSendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // ─── auto-focus chat input when chat panel opens ────
+        const chatTabBtn = document.querySelector('[data-tab="chat"]');
+        chatTabBtn.addEventListener('click', () => {
+            setTimeout(() => chatInput.focus(), 300);
+        });
+
+        // ─── initial chat message after a beat ──────────────
+        setTimeout(() => {
+            // already has a greeting, but we can add a second one for fun
+        }, 500);
+
+        console.log('✦ This Is Me — built with ✨');
+    </script>
+
+</body>
+</html>
