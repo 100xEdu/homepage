@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chunk — ADHD Project Helper</title>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#172033;
+    --muted:#687386;
+    --line:#e4e8f0;
+    --accent:#6d5dfc;
+    --accent-soft:#eeebff;
+    --green:#22a06b;
+    --green-soft:#e3f7ee;
+    --yellow:#f2b84b;
+    --shadow:0 12px 30px rgba(25,35,60,.08);
+    --radius:20px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  button,input,textarea{font:inherit}
+  button{cursor:pointer}
+  .app{max-width:1100px;margin:auto;padding:28px 18px 60px}
+  header{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:20px;
+    margin-bottom:24px;
+  }
+  .eyebrow{
+    color:var(--accent);font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+  }
+  h1{margin:6px 0 4px;font-size:34px;letter-spacing:-.04em}
+  .subtitle{margin:0;color:var(--muted);max-width:680px;line-height:1.55}
+  .btn{
+    border:0;border-radius:12px;padding:11px 15px;font-weight:750;
+    background:var(--accent);color:white;box-shadow:0 8px 18px rgba(109,93,252,.22);
+  }
+  .btn.secondary{background:white;color:var(--text);border:1px solid var(--line);box-shadow:none}
+  .btn.small{padding:8px 11px;font-size:13px}
+  .grid{display:grid;grid-template-columns:330px 1fr;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .sidebar{padding:16px}
+  .sidebar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .sidebar h2,.workspace h2{font-size:16px;margin:0}
+  .project-list{display:flex;flex-direction:column;gap:8px}
+  .project{
+    border:1px solid transparent;background:#fafbfe;border-radius:14px;padding:12px;
+    text-align:left;width:100%;transition:.15s;
+  }
+  .project:hover{transform:translateY(-1px);border-color:var(--line)}
+  .project.active{background:var(--accent-soft);border-color:#d8d2ff}
+  .project-title{font-weight:800;display:block;margin-bottom:7px}
+  .project-meta{font-size:12px;color:var(--muted)}
+  .mini-progress{height:6px;border-radius:99px;background:#e7eaf1;overflow:hidden;margin-top:9px}
+  .mini-progress span{display:block;height:100%;background:var(--accent)}
+  .workspace{padding:22px}
+  .workspace-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+  .project-name{font-size:28px;font-weight:850;letter-spacing:-.035em;margin-top:4px}
+  .project-note{color:var(--muted);margin-top:6px}
+  .overall{min-width:155px;text-align:right}
+  .percent{font-size:28px;font-weight:850}
+  .progress{height:10px;border-radius:99px;background:#e8ebf2;overflow:hidden;margin-top:8px}
+  .progress span{display:block;height:100%;background:var(--accent);border-radius:99px;transition:.25s}
+  .next{
+    margin-top:22px;padding:15px;border:1px dashed #cfc9ff;background:#faf9ff;border-radius:16px;
+  }
+  .next-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:850;color:var(--accent)}
+  .next-text{font-size:18px;font-weight:800;margin-top:5px}
+  .tasks{margin-top:20px}
+  .task{
+    display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+    padding:14px 4px;border-bottom:1px solid var(--line);
+  }
+  .task:last-child{border-bottom:0}
+  .check{
+    appearance:none;width:24px;height:24px;border-radius:8px;border:2px solid #c7ccda;background:white;display:grid;place-items:center;
+  }
+  .check:checked{background:var(--green);border-color:var(--green)}
+  .check:checked::after{content:"✓";color:white;font-weight:900;font-size:15px}
+  .task-title{font-weight:750;line-height:1.4}
+  .task.done .task-title{text-decoration:line-through;color:#8991a1}
+  .task-actions{display:flex;gap:5px}
+  .icon-btn{
+    border:0;background:transparent;color:#8a92a2;width:32px;height:32px;border-radius:9px
+  }
+  .icon-btn:hover{background:#f0f2f7;color:var(--text)}
+  .add-row{display:flex;gap:8px;margin-top:16px}
+  .input{
+    border:1px solid var(--line);background:white;border-radius:12px;padding:12px 13px;outline:none;width:100%;
+  }
+  .input:focus,.textarea:focus{border-color:#b7afff;box-shadow:0 0 0 3px rgba(109,93,252,.10)}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px}
+  .empty strong{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(18,25,40,.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:5}
+  .modal-backdrop.show{display:flex}
+  .modal{width:min(560px,100%);background:white;border-radius:22px;padding:22px;box-shadow:0 25px 70px rgba(0,0,0,.18)}
+  .modal h3{margin:0 0 6px;font-size:22px}
+  .help{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:16px}
+  .field{margin-top:13px}
+  .field label{display:block;font-size:13px;font-weight:800;margin-bottom:7px}
+  textarea.input{resize:vertical;min-height:78px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+  .celebrate{
+    position:fixed;inset:0;pointer-events:none;display:none;align-items:center;justify-content:center;z-index:10
+  }
+  .celebrate.show{display:flex}
+  .celebrate-box{
+    background:white;border:1px solid var(--line);box-shadow:0 25px 70px rgba(0,0,0,.15);
+    padding:24px 28px;border-radius:20px;text-align:center;animation:pop .35s ease;
+  }
+  .celebrate-emoji{font-size:38px}.celebrate-box h3{margin:8px 0 4px;font-size:24px}
+  .celebrate-box p{margin:0;color:var(--muted)}
+  @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+  .tip{
+    margin-top:18px;padding:12px 14px;border-radius:14px;background:#fff8e9;border:1px solid #f4e2b6;
+    color:#715820;font-size:13px;line-height:1.5
+  }
+  @media(max-width:800px){
+    .grid{grid-template-columns:1fr}
+    .workspace-top{flex-direction:column}
+    .overall{width:100%;text-align:left}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="eyebrow">CHUNK</div>
+      <h1>Make big things smaller.</h1>
+      <p class="subtitle">Turn a project that feels huge into tiny, visible actions. Only the next step needs your attention.</p>
+    </div>
+    <button class="btn" id="newProjectBtn">+ New project</button>
+  </header>
+
+  <div class="grid">
+    <aside class="card sidebar">
+      <div class="sidebar-head">
+        <h2>Projects</h2>
+        <button class="btn secondary small" id="clearDoneBtn" title="Clear completed tasks">Reset done</button>
+      </div>
+      <div id="projectList" class="project-list"></div>
+      <div class="tip"><strong>Rule:</strong> a chunk should feel almost too easy. “Open Android Studio” is a chunk. “Build my app” is not.</div>
+    </aside>
+
+    <main class="card workspace" id="workspace"></main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>New project</h3>
+    <div class="help">Give the project a name. Then add small actions rather than vague goals.</div>
+    <div class="field">
+      <label for="projectName">Project name</label>
+      <input class="input" id="projectName" placeholder="e.g. Build my Flutter app" />
+    </div>
+    <div class="field">
+      <label for="projectNote">What does “done” look like?</label>
+      <textarea class="input" id="projectNote" placeholder="e.g. A basic version is running on my phone."></textarea>
+    </div>
+    <div class="field">
+      <label for="firstChunks">First chunks <span style="font-weight:500;color:#8a92a2">(one per line)</span></label>
+      <textarea class="input" id="firstChunks" placeholder="Open the project folder&#10;Run the app once&#10;Create the first screen"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="cancelBtn">Cancel</button>
+      <button class="btn" id="createBtn">Create project</button>
+    </div>
+  </div>
+</div>
+
+<div class="celebrate" id="celebrate">
+  <div class="celebrate-box">
+    <div class="celebrate-emoji">✓</div>
+    <h3 id="celebrateTitle">Chunk done.</h3>
+    <p id="celebrateText">You moved the project forward.</p>
+  </div>
+</div>
+
+<script>
+const KEY = "chunk-adhd-projects-v1";
+
+const starter = [
+  {
+    id: crypto.randomUUID(),
+    name: "Try Chunk",
+    note: "Learn the system by finishing a few tiny actions.",
+    tasks: [
+      {id: crypto.randomUUID(), text:"Read the rule: only focus on the next chunk.", done:false},
+      {id: crypto.randomUUID(), text:"Pick one thing you have been avoiding.", done:false},
+      {id: crypto.randomUUID(), text:"Write the smallest possible first action.", done:false},
+      {id: crypto.randomUUID(), text:"Do that action for 5 minutes.", done:false}
+    ]
+  }
+];
+
+let state = load();
+let activeId = state[0]?.id ?? null;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  localStorage.setItem(KEY, JSON.stringify(starter));
+  return starter;
+}
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+function activeProject(){
+  return state.find(p => p.id === activeId);
+}
+
+function completedCount(p){ return p.tasks.filter(t=>t.done).length; }
+function pct(p){ return p.tasks.length ? Math.round(completedCount(p)/p.tasks.length*100) : 0; }
+
+function render(){
+  renderProjects();
+  renderWorkspace();
+}
+
+function renderProjects(){
+  const el = document.getElementById("projectList");
+  if(!state.length){
+    el.innerHTML = '<div class="empty"><strong>No projects yet.</strong>Make the first one small.</div>';
+    return;
+  }
+  el.innerHTML = state.map(p => `
+    <button class="project ${p.id===activeId?'active':''}" data-id="${p.id}">
+      <span class="project-title">${esc(p.name)}</span>
+      <span class="project-meta">${completedCount(p)}/${p.tasks.length} chunks done</span>
+      <span class="mini-progress"><span style="width:${pct(p)}%"></span></span>
+    </button>
+  `).join("");
+  el.querySelectorAll(".project").forEach(btn=>{
+    btn.onclick=()=>{ activeId=btn.dataset.id; render(); };
+  });
+}
+
+function renderWorkspace(){
+  const el = document.getElementById("workspace");
+  const p = activeProject();
+  if(!p){
+    el.innerHTML = `
+      <div class="empty">
+        <strong>Start with one project.</strong>
+        <p>Do not plan your whole life. Pick one thing and break it into the next few visible actions.</p>
+        <button class="btn" onclick="openModal()">+ New project</button>
+      </div>`;
+    return;
+  }
+
+  const next = p.tasks.find(t=>!t.done);
+  el.innerHTML = `
+    <div class="workspace-top">
+      <div>
+        <div class="eyebrow">CURRENT PROJECT</div>
+        <div class="project-name">${esc(p.name)}</div>
+        <div class="project-note">${esc(p.note || "No definition of done yet.")}</div>
+      </div>
+      <div class="overall">
+        <div class="percent">${pct(p)}%</div>
+        <div style="color:var(--muted);font-size:12px">${completedCount(p)} of ${p.tasks.length} chunks</div>
+        <div class="progress"><span style="width:${pct(p)}%"></span></div>
+      </div>
+    </div>
+
+    ${next ? `
+      <div class="next">
+        <div class="next-label">Only think about this</div>
+        <div class="next-text">${esc(next.text)}</div>
+      </div>` : `
+      <div class="next" style="background:var(--green-soft);border-color:#bde9d2">
+        <div class="next-label" style="color:var(--green)">PROJECT COMPLETE</div>
+        <div class="next-text">You finished the chunks. The big thing got done by doing small things.</div>
+      </div>`}
+
+    <div class="tasks">
+      ${p.tasks.length ? p.tasks.map((t,i)=>`
+        <div class="task ${t.done?'done':''}">
+          <input class="check" type="checkbox" ${t.done?'checked':''} data-task="${t.id}" />
+          <div class="task-title">${i+1}. ${esc(t.text)}</div>
+          <div class="task-actions">
+            <button class="icon-btn" title="Delete chunk" data-delete="${t.id}">×</button>
+          </div>
+        </div>
+      `).join("") : `<div class="empty"><strong>No chunks yet.</strong>Add one tiny action below.</div>`}
+    </div>
+
+    <div class="add-row">
+      <input class="input" id="taskInput" placeholder="Add one tiny chunk… e.g. “Open the file”" />
+      <button class="btn" id="addTaskBtn">Add</button>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:14px">
+      <button class="btn secondary small" id="deleteProjectBtn">Delete project</button>
+    </div>
+  `;
+
+  el.querySelectorAll(".check").forEach(box=>{
+    box.onchange=()=>{
+      toggleTask(p.id, box.dataset.task, box.checked);
+    };
+  });
+  el.querySelectorAll("[data-delete]").forEach(btn=>{
+    btn.onclick=()=>deleteTask(p.id, btn.dataset.delete);
+  });
+  document.getElementById("addTaskBtn").onclick=()=>addTask();
+  document.getElementById("taskInput").onkeydown=e=>{
+    if(e.key==="Enter") addTask();
+  };
+  document.getElementById("deleteProjectBtn").onclick=deleteProject;
+}
+
+function addTask(){
+  const input=document.getElementById("taskInput");
+  const text=input.value.trim();
+  if(!text) return;
+  const p=activeProject();
+  if(!p) return;
+  p.tasks.push({id:crypto.randomUUID(),text,done:false});
+  input.value="";
+  save(); render();
+  setTimeout(()=>document.getElementById("taskInput")?.focus(),30);
+}
+
+function toggleTask(projectId,taskId,done){
+  const p=state.find(x=>x.id===projectId);
+  const t=p?.tasks.find(x=>x.id===taskId);
+  if(!p||!t) return;
+  t.done=done;
+  save(); render();
+  if(done){
+    showCelebrate(
+      completedCount(p)===p.tasks.length ? "Project complete." : "Chunk done.",
+      completedCount(p)===p.tasks.length ? "You finished the whole project one small action at a time." : "That is progress. The next chunk is waiting."
+    );
+  }
+}
+
+function deleteTask(projectId, taskId){
+  const p=state.find(x=>x.id===projectId);
+  if(!p) return;
+  p.tasks=p.tasks.filter(t=>t.id!==taskId);
+  save(); render();
+}
+
+function deleteProject(){
+  const p=activeProject();
+  if(!p) return;
+  if(!confirm(`Delete "${p.name}"?`)) return;
+  state=state.filter(x=>x.id!==p.id);
+  activeId=state[0]?.id ?? null;
+  save(); render();
+}
+
+function openModal(){
+  document.getElementById("modalBackdrop").classList.add("show");
+  document.getElementById("projectName").focus();
+}
+function closeModal(){
+  document.getElementById("modalBackdrop").classList.remove("show");
+  ["projectName","projectNote","firstChunks"].forEach(id=>document.getElementById(id).value="");
+}
+function createProject(){
+  const name=document.getElementById("projectName").value.trim();
+  const note=document.getElementById("projectNote").value.trim();
+  const chunks=document.getElementById("firstChunks").value
+    .split("\\n").map(x=>x.trim()).filter(Boolean);
+  if(!name){ document.getElementById("projectName").focus(); return; }
+  const p={
+    id:crypto.randomUUID(),
+    name,
+    note,
+    tasks:chunks.map(text=>({id:crypto.randomUUID(),text,done:false}))
+  };
+  state.unshift(p); activeId=p.id; save(); closeModal(); render();
+}
+function showCelebrate(title,text){
+  const box=document.getElementById("celebrate");
+  document.getElementById("celebrateTitle").textContent=title;
+  document.getElementById("celebrateText").textContent=text;
+  box.classList.add("show");
+  setTimeout(()=>box.classList.remove("show"),850);
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+function clearDone(){
+  state.forEach(p=>p.tasks.forEach(t=>t.done=false));
+  save(); render();
+}
+
+document.getElementById("newProjectBtn").onclick=openModal;
+document.getElementById("cancelBtn").onclick=closeModal;
+document.getElementById("createBtn").onclick=createProject;
+document.getElementById("clearDoneBtn").onclick=clearDone;
+document.getElementById("modalBackdrop").onclick=e=>{
+  if(e.target.id==="modalBackdrop") closeModal();
+};
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape") closeModal();
+});
+
+render();
+</script>
+</body>
+</html>
