@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Chunker - Focus Task Manager</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #2ecc71;
+            --text: #333333;
+            --text-light: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            background-color: var(--primary);
+            font-size: 0.9em;
+            padding: 8px 15px;
+        }
+
+        .toggle-btn.active {
+            background-color: var(--success);
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            height: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.85em;
+            color: var(--text-light);
+            margin-top: -15px;
+            margin-bottom: 20px;
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .task-item.completed {
+            border-left-color: var(--success);
+            background-color: #f0fdf4;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-light);
+        }
+
+        .task-item.hidden {
+            display: none;
+        }
+
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: var(--success);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1.05em;
+        }
+
+        .delete-btn {
+            background: none;
+            color: #e74c3c;
+            font-size: 1.2em;
+            padding: 5px 10px;
+        }
+
+        .delete-btn:hover {
+            background: #fdedec;
+        }
+
+        .celebration {
+            text-align: center;
+            font-size: 1.5em;
+            color: var(--success);
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-light);
+            padding: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Project Chunker</h1>
+    <p class="subtitle">Deconstruct. Focus. Execute.</p>
+
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Enter a micro-task (e.g., Write header HTML)" onkeypress="handleEnter(event)">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div class="controls">
+        <div class="progress-text" id="progressText">0 of 0 tasks completed</div>
+        <button class="toggle-btn" id="focusToggle" onclick="toggleFocusMode()">Enable Focus Mode</button>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <ul class="task-list" id="taskList"></ul>
+    
+    <div class="celebration" id="celebration">
+        Excellent work. All tasks are complete.
+    </div>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('adhd_chunker_tasks')) || [];
+    let focusMode = false;
+
+    function saveTasks() {
+        localStorage.setItem('adhd_chunker_tasks', JSON.stringify(tasks));
+    }
+
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        if (text === '') return;
+
+        tasks.push({ id: Date.now(), text: text, completed: false });
+        input.value = '';
+        saveTasks();
+        renderTasks();
+    }
+
+    function handleEnter(event) {
+        if (event.key === 'Enter') {
+            addTask();
+        }
+    }
+
+    function toggleTask(id) {
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            task.completed = !task.completed;
+            saveTasks();
+            renderTasks();
+        }
+    }
+
+    function deleteTask(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+        renderTasks();
+    }
+
+    function toggleFocusMode() {
+        focusMode = !focusMode;
+        const btn = document.getElementById('focusToggle');
+        if (focusMode) {
+            btn.textContent = 'Disable Focus Mode';
+            btn.classList.add('active');
+        } else {
+            btn.textContent = 'Enable Focus Mode';
+            btn.classList.remove('active');
+        }
+        renderTasks();
+    }
+
+    function renderTasks() {
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+
+        const completedCount = tasks.filter(t => t.completed).length;
+        const totalCount = tasks.length;
+        const percentage = totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
+
+        document.getElementById('progressBar').style.width = percentage + '%';
+        document.getElementById('progressText').textContent = `${completedCount} of ${totalCount} tasks completed`;
+
+        const celebration = document.getElementById('celebration');
+        celebration.style.display = (totalCount > 0 && completedCount === totalCount) ? 'block' : 'none';
+
+        if (totalCount === 0) {
+            list.innerHTML = '<li class="empty-state">No tasks defined. Add a micro-task to begin.</li>';
+            return;
+        }
+
+        let firstIncompleteShown = false;
+
+        tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = 'task-item' + (task.completed ? ' completed' : '');
+
+            // Focus Mode Logic: Hide completed tasks and future incomplete tasks
+            if (focusMode) {
+                if (task.completed) {
+                    li.classList.add('hidden');
+                } else if (firstIncompleteShown) {
+                    li.classList.add('hidden');
+                } else {
+                    firstIncompleteShown = true;
+                }
+            }
+
+            li.innerHTML = `
+                <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                <span class="task-text">${task.text}</span>
+                <button class="delete-btn" onclick="deleteTask(${task.id})">×</button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    // Initial render
+    renderTasks();
+</script>
+
+</body>
+</html>
