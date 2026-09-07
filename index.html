@@ -109,7 +109,7 @@
   .stat{padding:20px;border-radius:18px;background:var(--panel2);border:1px solid var(--line)}
   .stat b{display:block;font-size:2rem}
   .stat span{color:var(--muted);font-size:.83rem}
-  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px; flex-wrap: wrap;}
   .tab{
     border:1px solid var(--line);background:transparent;color:var(--muted);
     padding:9px 14px;border-radius:999px;cursor:pointer;
@@ -132,6 +132,22 @@
     background:var(--panel2);color:var(--text);cursor:pointer;
   }
   .empty{padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}
+  
+  /* ADHD Tools Iframe Wrapper */
+  .iframe-wrap {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--bg);
+    min-height: 600px;
+  }
+  .iframe-wrap iframe {
+    width: 100%;
+    height: 650px;
+    border: none;
+    display: block;
+  }
+
   .calendarWrap{overflow:auto;border:1px solid var(--line);border-radius:22px}
   .calendarHeader{
     display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;
@@ -158,7 +174,6 @@
   .day .greg{display:block;color:#717c88;font-size:.58rem;margin-top:2px}
   .day.past{opacity:.44}
   .day.today{background:rgba(216,255,79,.08);box-shadow:inset 0 0 0 1px rgba(216,255,79,.65)}
-  .day.today .custom{color:var(--accent)}
   .day.past .custom,.day.past .greg{text-decoration:line-through;text-decoration-thickness:1.5px}
   .yearDay{display:flex;align-items:center;justify-content:center;min-height:74px;border-top:1px solid #2b333c;margin-top:14px;padding-top:12px}
   .yearDayCard{border:1px dashed #47515c;border-radius:14px;padding:12px 16px;text-align:center;width:100%}
@@ -212,6 +227,7 @@
       <a href="#about">About</a>
       <a href="#timeline">Timeline</a>
       <a href="#work">Work</a>
+      <a href="#adhd-tools">ADHD Tools</a>
       <a href="#calendar">Calendar</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -230,7 +246,7 @@
         </p>
         <div class="heroActions">
           <a class="btn primary" href="#work">See what I'm building</a>
-          <a class="btn" href="#calendar">Open my 28-day calendar</a>
+          <a class="btn" href="#adhd-tools">Try focus tools</a>
           <a class="btn" href="#contact">Find me</a>
         </div>
       </div>
@@ -330,6 +346,31 @@
       </div>
       <div id="projectGrid" class="projectGrid"></div>
       <p class="small" style="margin-top:12px">Projects are stored in this browser using localStorage in this standalone version.</p>
+    </div>
+  </section>
+
+  <!-- NEW: ADHD Tools Section -->
+  <section id="adhd-tools">
+    <div class="container">
+      <div class="sectionHead">
+        <div>
+          <h2>ADHD Focus Tools.</h2>
+          <p>Different interfaces for chunking tasks and managing focus. Pick the one that works best for your brain today.</p>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-adhd-tab="claude">Momentum</button>
+        <button class="tab" data-adhd-tab="deep">Chunk Helper</button>
+        <button class="tab" data-adhd-tab="gemini">Focus Mode</button>
+        <button class="tab" data-adhd-tab="gpt">Subtask Manager</button>
+        <button class="tab" data-adhd-tab="qwen">Waypoint</button>
+      </div>
+
+      <div id="adhdToolContainer" class="iframe-wrap">
+        <!-- Iframes will be injected here -->
+      </div>
+      <p class="small" style="margin-top:12px">Each tool saves its data independently in your browser's localStorage. Ensure the files (e.g., <code>adhd_claude.html</code>) are in the same folder as this <code>index.html</code>.</p>
     </div>
   </section>
 
@@ -523,9 +564,9 @@
     }[s]));
   }
 
-  document.querySelectorAll(".tab").forEach(btn=>{
+  document.querySelectorAll(".tab[data-tab]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll(".tab[data-tab]").forEach(x=>x.classList.remove("active"));
       btn.classList.add("active");
       activeTab = btn.dataset.tab;
       renderProjects();
@@ -689,9 +730,40 @@
   });
 
   document.getElementById("footerYear").textContent = new Date().getFullYear();
+  
   renderProjects();
   updateStats();
   renderCalendar();
+
+  // --- ADHD Tools Tab Logic ---
+  const adhdTabs = document.querySelectorAll("[data-adhd-tab]");
+  const adhdContainer = document.getElementById("adhdToolContainer");
+  
+  const adhdFiles = {
+    claude: "adhd_claude.html",
+    deep: "adhd_deep.html",
+    gemini: "adhd_gemini.html",
+    gpt: "adhd_gpt.html",
+    qwen: "adhd_qwen.html"
+  };
+
+  function loadAdhdTool(toolKey) {
+    if(!adhdContainer) return;
+    const filename = adhdFiles[toolKey];
+    adhdContainer.innerHTML = `<iframe src="${filename}" style="width:100%; height:650px; border:none; display:block;" title="ADHD Tool ${toolKey}" loading="lazy"></iframe>`;
+  }
+
+  if(adhdTabs.length > 0) {
+    adhdTabs.forEach(btn => {
+      btn.addEventListener("click", () => {
+        adhdTabs.forEach(x => x.classList.remove("active"));
+        btn.classList.add("active");
+        loadAdhdTool(btn.dataset.adhdTab);
+      });
+    });
+    // Load default on init
+    loadAdhdTool("claude");
+  }
 
   // Refresh the crossed-out state once a minute so the page does not need a manual reload at midnight.
   setInterval(()=>{
