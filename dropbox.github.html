@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0b0d10" />
+<title>Dropbox — Saurabh Gavit</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161b; --panel2:#171c22;
+    --text:#edf2f7; --muted:#8f9aa7; --line:#27303a;
+    --accent:#d8ff4f; --accent2:#a6c738; --danger:#ff7474;
+    --shadow:0 18px 50px rgba(0,0,0,.30); --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(circle at 85% 5%, rgba(216,255,79,.07), transparent 24rem),
+      radial-gradient(circle at 10% 20%, rgba(109,129,255,.05), transparent 22rem),
+      var(--bg);
+    color:var(--text); line-height:1.55; padding:18px;
+  }
+  a{color:inherit;text-decoration:none}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .wrap{max-width:1000px;margin:0 auto}
+  .topRow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .title{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;margin:0}
+  .title span{color:var(--accent)}
+  .status{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:.78rem;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--panel);
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .dot.ok{background:var(--accent);box-shadow:0 0 10px rgba(216,255,79,.5)}
+  .dot.err{background:var(--danger)}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{
+    border:1px solid var(--line);background:transparent;color:var(--muted);
+    padding:9px 16px;border-radius:999px;cursor:pointer;font-size:.9rem;
+  }
+  .tab.active{background:var(--accent);color:#141900;border-color:var(--accent);font-weight:800}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .panel + .panel{margin-top:16px}
+  .hidden{display:none !important}
+  .field{margin:12px 0}
+  .field label{display:block;color:var(--muted);font-size:.8rem;margin-bottom:6px}
+  .field input,.field select{
+    width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
+    background:#0d1014;outline:none;
+  }
+  .field input:focus{border-color:#46515e}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:620px){.grid2{grid-template-columns:1fr}}
+  .btn{
+    border:1px solid var(--line);border-radius:999px;background:var(--panel2);
+    color:var(--text);padding:11px 18px;cursor:pointer;font-size:.9rem;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{border-color:#46515e}
+  .btn.primary{background:var(--accent);color:#111600;border-color:var(--accent);font-weight:800}
+  .btn.primary:hover{background:var(--accent2)}
+  .btn.danger{color:#ff9d9d;border-color:rgba(255,116,116,.3)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .hint{color:var(--muted);font-size:.82rem;margin-top:10px;line-height:1.5}
+  .hint code{background:#0d1014;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.78rem}
+
+  /* Drop zone */
+  .dropZone{
+    border:2px dashed var(--line);border-radius:18px;padding:34px 20px;text-align:center;
+    cursor:pointer;transition:.2s;background:rgba(255,255,255,.015);
+  }
+  .dropZone:hover,.dropZone.drag{border-color:var(--accent);background:rgba(216,255,79,.05)}
+  .dropZone .big{font-size:2.2rem;margin-bottom:8px}
+  .dropZone .main{font-weight:700;margin-bottom:4px}
+  .dropZone .sub{color:var(--muted);font-size:.85rem}
+
+  /* File queue */
+  .queue{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .qItem{
+    display:flex;align-items:center;gap:12px;padding:10px 14px;
+    border:1px solid var(--line);border-radius:12px;background:var(--panel2);
+    font-size:.88rem;
+  }
+  .qItem .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qItem .size{color:var(--muted);font-size:.78rem;flex-shrink:0}
+  .qItem .state{font-size:.78rem;flex-shrink:0;font-weight:700}
+  .qItem .state.ok{color:var(--accent)}
+  .qItem .state.err{color:var(--danger)}
+  .qItem .state.pending{color:var(--muted)}
+  .qItem .rm{
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    padding:2px 6px;border-radius:6px;font-size:1rem;
+  }
+  .qItem .rm:hover{color:var(--danger);background:rgba(255,116,116,.1)}
+
+  /* Files list */
+  .searchRow{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .searchRow input{
+    flex:1;min-width:180px;padding:11px 14px;border-radius:12px;
+    border:1px solid var(--line);background:#0d1014;outline:none;
+  }
+  .fileList{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;padding-right:4px}
+  .fileList::-webkit-scrollbar{width:6px}
+  .fileList::-webkit-scrollbar-thumb{background:#2c343d;border-radius:6px}
+  .fileItem{
+    display:flex;align-items:center;gap:12px;padding:12px 14px;
+    border:1px solid var(--line);border-radius:14px;background:var(--panel2);
+    transition:.15s;
+  }
+  .fileItem:hover{border-color:#46515e}
+  .fileIcon{
+    width:38px;height:38px;border-radius:10px;flex-shrink:0;
+    display:grid;place-items:center;font-size:1.1rem;
+    background:linear-gradient(145deg,#242a31,#11151a);border:1px solid var(--line);
+  }
+  .fileMeta{flex:1;min-width:0}
+  .fileMeta .fn{font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fileMeta .fs{color:var(--muted);font-size:.75rem}
+  .fileActions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+  .iconBtn{
+    min-width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);cursor:pointer;font-size:.85rem;
+    display:inline-flex;align-items:center;justify-content:center;padding:0 10px;
+  }
+  .iconBtn:hover{border-color:#46515e;background:#1d242b}
+  .iconBtn.dl{color:var(--accent)}
+  .iconBtn.del{color:#ff9d9d}
+  .empty{
+    padding:38px 20px;text-align:center;color:var(--muted);
+    border:1px dashed var(--line);border-radius:16px;font-size:.9rem;
+  }
+  .loading{color:var(--muted);font-size:.88rem;padding:16px;text-align:center}
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--panel2);border:1px solid var(--line);border-radius:999px;
+    padding:11px 22px;font-size:.85rem;box-shadow:var(--shadow);
+    opacity:0;transition:.25s;pointer-events:none;z-index:200;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{border-color:rgba(216,255,79,.4);color:var(--accent)}
+  .toast.err{border-color:rgba(255,116,116,.4);color:#ff9d9d}
+  .progress{height:6px;border-radius:4px;background:#0d1014;overflow:hidden;margin-top:6px}
+  .progress > span{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topRow">
+    <h1 class="title">Drop<span>box</span></h1>
+    <div class="status" id="statusPill">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Not connected</span>
+    </div>
+  </div>
+
+  <!-- ========== SETUP (shown when not configured) ========== -->
+  <section class="panel" id="setupPanel">
+    <h2 style="margin:0 0 6px;font-size:1.1rem">Connect your GitHub repo</h2>
+    <p class="hint" style="margin-top:0">
+      Your files will be stored as commits in a GitHub repository. This means your
+      repo becomes the storage — GitHub Pages itself can't accept uploads.
+    </p>
+
+    <div class="field">
+      <label>Personal Access Token (fine-grained, Contents: Read &amp; write)</label>
+      <input id="setToken" type="password" placeholder="github_pat_..." autocomplete="off" />
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Owner (username or org)</label>
+        <input id="setOwner" placeholder="saurabhgavit" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Repository</label>
+        <input id="setRepo" placeholder="my-site" autocomplete="off" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Branch</label>
+        <input id="setBranch" placeholder="main" value="main" />
+      </div>
+      <div class="field">
+        <label>Base folder in repo</label>
+        <input id="setBase" placeholder="dropbox" value="dropbox" />
+      </div>
+    </div>
+
+    <div class="btnRow">
+      <button class="btn primary" id="saveSetupBtn">Save &amp; connect</button>
+      <button class="btn" id="testSetupBtn">Test connection</button>
+    </div>
+    <p class="hint">
+      <strong>How to make a token:</strong> GitHub → Settings → Developer settings →
+      Personal access tokens → <em>Fine-grained tokens</em> → Generate new token.
+      Scope it to <em>only this repository</em>, and give it <code>Contents: Read and write</code>.
+      Nothing else.
+    </p>
+  </section>
+
+  <!-- ========== MAIN (shown when configured) ========== -->
+  <section id="mainPanel" class="hidden">
+
+    <div class="tabs">
+      <button class="tab active" data-tab="upload">⬆ Upload</button>
+      <button class="tab" data-tab="files">📁 Files</button>
+      <button class="tab" data-tab="settings">⚙ Settings</button>
+    </div>
+
+    <!-- UPLOAD TAB -->
+    <div class="panel" id="tab-upload">
+      <div class="dropZone" id="dropZone">
+        <div class="big">📦</div>
+        <div class="main">Drop files here</div>
+        <div class="sub">or click to browse — multiple files supported</div>
+      </div>
+      <input type="file" id="fileInput" multiple style="display:none" />
+
+      <div class="queue" id="queue"></div>
+
+      <div class="btnRow">
+        <button class="btn primary" id="uploadBtn" disabled>Upload all</button>
+        <button class="btn" id="clearQueueBtn" disabled>Clear</button>
+      </div>
+      <p class="hint">Files are committed directly to your repo under
+        <code id="baseHint">dropbox/</code>. Each file = one commit.</p>
+    </div>
+
+    <!-- FILES TAB -->
+    <div class="panel hidden" id="tab-files">
+      <div class="searchRow">
+        <input id="searchInput" placeholder="Filter files…" />
+        <button class="btn" id="refreshBtn">↻ Refresh</button>
+      </div>
+      <div class="fileList" id="fileList">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="panel hidden" id="tab-settings">
+      <h2 style="margin:0 0 6px;font-size:1.1rem">Settings</h2>
+      <p class="hint" style="margin-top:0">Changes are stored only in this browser.</p>
+
+      <div class="field">
+        <label>Personal Access Token</label>
+        <input id="cfgToken" type="password" autocomplete="off" />
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Owner</label><input id="cfgOwner" /></div>
+        <div class="field"><label>Repository</label><input id="cfgRepo" /></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Branch</label><input id="cfgBranch" /></div>
+        <div class="field"><label>Base folder</label><input id="cfgBase" /></div>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn primary" id="saveCfgBtn">Save changes</button>
+        <button class="btn danger" id="disconnectBtn">Disconnect</button>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const CFG_KEY = "dropbox_cfg_v1";
+  let cfg = null;
+  let queue = []; // { file, status: 'pending'|'uploading'|'ok'|'err', error }
+
+  // ---------- helpers ----------
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const fmtSize = b => {
+    if(b < 1024) return b + ' B';
+    if(b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    if(b < 1073741824) return (b/1048576).toFixed(2) + ' MB';
+    return (b/1073741824).toFixed(2) + ' GB';
+  };
+  const iconFor = name => {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    if(['jpg','jpeg','png','gif','webp','svg','bmp','ico'].includes(ext)) return '🖼';
+    if(['mp4','mov','mkv','webm','avi'].includes(ext)) return '🎬';
+    if(['mp3','wav','ogg','m4a','flac'].includes(ext)) return '🎵';
+    if(['pdf'].includes(ext)) return '📕';
+    if(['zip','rar','7z','tar','gz'].includes(ext)) return '🗜';
+    if(['doc','docx','odt','rtf'].includes(ext)) return '📄';
+    if(['xls','xlsx','csv','ods'].includes(ext)) return '📊';
+    if(['ppt','pptx','odp'].includes(ext)) return '📽';
+    if(['js','ts','py','html','css','json','md','sh','yml','yaml','java','c','cpp','go','rs','rb','php'].includes(ext)) return '📜';
+    return '📎';
+  };
+  const toast = (msg, kind='') => {
+    const t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + kind;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=> t.className = 'toast ' + kind, 2600);
+  };
+
+  // ---------- GitHub API ----------
+  async function gh(method, path, body, extraHeaders){
+    const headers = {
+      'Authorization': 'Bearer ' + cfg.token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(body ? {'Content-Type':'application/json'} : {}),
+      ...(extraHeaders || {})
+    };
+    const res = await fetch('https://api.github.com' + path, {
+      method, headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if(!res.ok){
+      let msg = 'HTTP ' + res.status;
+      try { const j = await res.json(); msg = j.message || msg; } catch(e){}
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    if(res.status === 204) return null;
+    const ct = res.headers.get('content-type') || '';
+    if(ct.includes('application/json')) return res.json();
+    return res;
+  }
+
+  function fullPath(name){
+    const base = (cfg.base || '').replace(/^\/+|\/+$/g, '');
+    return base ? base + '/' + name : name;
+  }
+
+  async function listFiles(){
+    const p = (cfg.base || '').replace(/^\/+|\/+$/g, '');
+    try {
+      const data = await gh('GET', `/repos/${cfg.owner}/${cfg.repo}/contents/${p}?ref=${encodeURIComponent(cfg.branch)}`);
+      return Array.isArray(data) ? data.filter(x => x.type === 'file') : [];
+    } catch(e) {
+      if(e.status === 404) return []; // folder doesn't exist yet -> empty
+      throw e;
+    }
+  }
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(',')[1] || '');
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function uploadOne(file){
+    const path = fullPath(file.name);
+    // Check for existing file -> need sha to overwrite
+    let sha;
+    try {
+      const existing = await gh('GET', `/repos/${cfg.owner}/${cfg.repo}/contents/${path}?ref=${encodeURIComponent(cfg.branch)}`);
+      if(existing && existing.sha) sha = existing.sha;
+    } catch(e) { if(e.status !== 404) throw e; }
+
+    const content = await fileToBase64(file);
+    await gh('PUT', `/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
+      message: `dropbox: upload ${file.name}`,
+      content,
+      branch: cfg.branch,
+      ...(sha ? {sha} : {})
+    });
+  }
+
+  async function downloadOne(fileItem){
+    const res = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${fileItem.path}?ref=${encodeURIComponent(cfg.branch)}`,
+      { headers: { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github.raw' } }
+    );
+    if(!res.ok) throw new Error('Download failed: HTTP ' + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileItem.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+  }
+
+  async function deleteOne(fileItem){
+    await gh('DELETE', `/repos/${cfg.owner}/${cfg.repo}/contents/${fileItem.path}`, {
+      message: `dropbox: delete ${fileItem.name}`,
+      sha: fileItem.sha,
+      branch: cfg.branch
+    });
+  }
+
+  // ---------- config ----------
+  function loadCfg(){
+    try { cfg = JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); } catch(e){ cfg = null; }
+  }
+  function saveCfg(){
+    localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  }
+
+  function setConnectedUI(isConnected, label){
+    $('statusDot').className = 'dot ' + (isConnected ? 'ok' : '');
+    $('statusText').textContent = label || (isConnected ? 'Connected' : 'Not connected');
+    $('setupPanel').classList.toggle('hidden', !!isConnected);
+    $('mainPanel').classList.toggle('hidden', !isConnected);
+  }
+
+  function applyCfgToForms(){
+    if(!cfg) return;
+    $('setToken').value = cfg.token || '';
+    $('setOwner').value = cfg.owner || '';
+    $('setRepo').value = cfg.repo || '';
+    $('setBranch').value = cfg.branch || 'main';
+    $('setBase').value = cfg.base || 'dropbox';
+    $('cfgToken').value = cfg.token || '';
+    $('cfgOwner').value = cfg.owner || '';
+    $('cfgRepo').value = cfg.repo || '';
+    $('cfgBranch').value = cfg.branch || 'main';
+    $('cfgBase').value = cfg.base || 'dropbox';
+    $('baseHint').textContent = (cfg.base || '') + '/';
+  }
+
+  function readSetupForm(){
+    return {
+      token: $('setToken').value.trim(),
+      owner: $('setOwner').value.trim(),
+      repo:  $('setRepo').value.trim(),
+      branch:$('setBranch').value.trim() || 'main',
+      base:  $('setBase').value.trim() || 'dropbox'
+    };
+  }
+
+  // ---------- rendering: queue ----------
+  function renderQueue(){
+    const q = $('queue');
+    if(!queue.length){ q.innerHTML = ''; $('uploadBtn').disabled = true; $('clearQueueBtn').disabled = true; return; }
+    $('uploadBtn').disabled = !queue.some(x => x.status === 'pending');
+    $('clearQueueBtn').disabled = false;
+    q.innerHTML = queue.map((item, i) => {
+      const cls = item.status === 'ok' ? 'ok' : item.status === 'err' ? 'err' : 'pending';
+      const label = item.status === 'pending' ? 'ready'
+                  : item.status === 'uploading' ? 'uploading…'
+                  : item.status === 'ok' ? '✓ done'
+                  : '✕ ' + (item.error || 'error');
+      return `
+        <div class="qItem">
+          <span style="font-size:1.2rem">${iconFor(item.file.name)}</span>
+          <span class="name">${esc(item.file.name)}</span>
+          <span class="size">${fmtSize(item.file.size)}</span>
+          <span class="state ${cls}">${esc(label)}</span>
+          ${item.status === 'pending' ? `<button class="rm" data-i="${i}" title="Remove">✕</button>` : ''}
+        </div>`;
+    }).join('');
+    q.querySelectorAll('.rm').forEach(b => b.addEventListener('click', () => {
+      queue.splice(parseInt(b.dataset.i), 1);
+      renderQueue();
+    }));
+  }
+
+  function addToQueue(files){
+    for(const f of files){
+      if(f.size > 25 * 1024 * 1024){
+        toast(f.name + ' is over 25MB — GitHub API may reject it.', 'err');
+      }
+      queue.push({ file: f, status: 'pending' });
+    }
+    renderQueue();
+  }
+
+  // ---------- rendering: files ----------
+  let cachedFiles = [];
+
+  async function refreshFiles(){
+    const box = $('fileList');
+    box.innerHTML = '<div class="loading">Loading…</div>';
+    try {
+      const files = await listFiles();
+      cachedFiles = files.sort((a,b) => (b.name||'').localeCompare(a.name||''));
+      renderFileList();
+    } catch(e){
+      box.innerHTML = `<div class="empty">Could not load files.<br><span style="color:#ff9d9d">${esc(e.message)}</span></div>`;
+    }
+  }
+
+  function renderFileList(){
+    const box = $('fileList');
+    const q = ($('searchInput').value || '').toLowerCase();
+    const list = cachedFiles.filter(f => f.name.toLowerCase().includes(q));
+
+    if(!list.length){
+      box.innerHTML = `<div class="empty">${cachedFiles.length ? 'No files match.' : 'No files yet. Upload something in the Upload tab.'}</div>`;
+      return;
+    }
+    box.innerHTML = list.map(f => `
+      <div class="fileItem">
+        <div class="fileIcon">${iconFor(f.name)}</div>
+        <div class="fileMeta">
+          <div class="fn">${esc(f.name)}</div>
+          <div class="fs">${fmtSize(f.size)}</div>
+        </div>
+        <div class="fileActions">
+          <button class="iconBtn dl" data-act="dl" data-name="${esc(f.name)}" data-path="${esc(f.path)}" title="Download">↓</button>
+          <button class="iconBtn" data-act="copy" data-raw="${esc('https://raw.githubusercontent.com/' + cfg.owner + '/' + cfg.repo + '/' + cfg.branch + '/' + f.path)}" title="Copy raw link">🔗</button>
+          <button class="iconBtn del" data-act="del" data-name="${esc(f.name)}" data-path="${esc(f.path)}" data-sha="${esc(f.sha)}" title="Delete">🗑</button>
+        </div>
+      </div>
+    `).join('');
+
+    box.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const act = btn.dataset.act;
+        try{
+          if(act === 'dl'){
+            btn.disabled = true; btn.textContent = '…';
+            await downloadOne({ name: btn.dataset.name, path: btn.dataset.path });
+            btn.textContent = '↓';
+          }
+          if(act === 'copy'){
+            await navigator.clipboard.writeText(btn.dataset.raw);
+            toast('Link copied', 'ok');
+          }
+          if(act === 'del'){
+            if(!confirm('Delete "' + btn.dataset.name + '" from the repo?')) return;
+            btn.disabled = true;
+            await deleteOne({ name: btn.dataset.name, path: btn.dataset.path, sha: btn.dataset.sha });
+            toast('Deleted', 'ok');
+            refreshFiles();
+          }
+        } catch(e){
+          toast(e.message, 'err');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  // ---------- tabs ----------
+  document.querySelectorAll('.tab[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab[data-tab]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ['upload','files','settings'].forEach(t => {
+        $('tab-' + t).classList.toggle('hidden', t !== btn.dataset.tab);
+      });
+      if(btn.dataset.tab === 'files') refreshFiles();
+    });
+  });
+
+  // ---------- setup ----------
+  $('saveSetupBtn').addEventListener('click', async () => {
+    const form = readSetupForm();
+    if(!form.token || !form.owner || !form.repo){
+      toast('Token, owner and repo are required.', 'err'); return;
+    }
+    cfg = form;
+    try {
+      await gh('GET', `/repos/${cfg.owner}/${cfg.repo}`);
+      saveCfg();
+      setConnectedUI(true, 'Connected');
+      applyCfgToForms();
+      toast('Connected to ' + cfg.owner + '/' + cfg.repo, 'ok');
+      refreshFiles();
+    } catch(e){
+      toast('Connection failed: ' + e.message, 'err');
+    }
+  });
+
+  $('testSetupBtn').addEventListener('click', async () => {
+    const form = readSetupForm();
+    if(!form.token || !form.owner || !form.repo){ toast('Fill all fields first.', 'err'); return; }
+    const prev = cfg;
+    cfg = form;
+    try {
+      await gh('GET', `/repos/${cfg.owner}/${cfg.repo}`);
+      toast('✓ Repo reachable, token works.', 'ok');
+    } catch(e){
+      toast('Failed: ' + e.message, 'err');
+    }
+    cfg = prev; // don't persist on test
+  });
+
+  // ---------- settings ----------
+  $('saveCfgBtn').addEventListener('click', () => {
+    cfg = {
+      token: $('cfgToken').value.trim(),
+      owner: $('cfgOwner').value.trim(),
+      repo:  $('cfgRepo').value.trim(),
+      branch:$('cfgBranch').value.trim() || 'main',
+      base:  $('cfgBase').value.trim() || 'dropbox'
+    };
+    saveCfg();
+    applyCfgToForms();
+    toast('Saved.', 'ok');
+  });
+
+  $('disconnectBtn').addEventListener('click', () => {
+    if(!confirm('Disconnect and forget the token in this browser?')) return;
+    localStorage.removeItem(CFG_KEY);
+    cfg = null;
+    setConnectedUI(false);
+    $('setToken').value = ''; $('setOwner').value = ''; $('setRepo').value = '';
+    $('setBranch').value = 'main'; $('setBase').value = 'dropbox';
+  });
+
+  // ---------- upload UI ----------
+  const dz = $('dropZone');
+  dz.addEventListener('click', () => $('fileInput').click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag');
+    addToQueue(Array.from(e.dataTransfer.files));
+  });
+  $('fileInput').addEventListener('change', e => {
+    addToQueue(Array.from(e.target.files));
+    e.target.value = '';
+  });
+
+  $('clearQueueBtn').addEventListener('click', () => {
+    queue = queue.filter(x => x.status === 'uploading');
+    renderQueue();
+  });
+
+  $('uploadBtn').addEventListener('click', async () => {
+    const pending = queue.filter(x => x.status === 'pending');
+    if(!pending.length) return;
+    $('uploadBtn').disabled = true;
+
+    for(const item of pending){
+      item.status = 'uploading';
+      renderQueue();
+      try {
+        await uploadOne(item.file);
+        item.status = 'ok';
+      } catch(e) {
+        item.status = 'err';
+        item.error = e.message;
+      }
+      renderQueue();
+    }
+
+    const ok = queue.filter(x => x.status === 'ok').length;
+    const err = queue.filter(x => x.status === 'err').length;
+    toast(`Uploaded ${ok} file${ok===1?'':'s'}${err?`, ${err} failed`:''}.`, err ? 'err' : 'ok');
+
+    // Clear successful ones after a moment
+    setTimeout(() => {
+      queue = queue.filter(x => x.status !== 'ok');
+      renderQueue();
+    }, 1500);
+
+    // Refresh file list in background
+    refreshFiles();
+  });
+
+  // ---------- files UI ----------
+  $('refreshBtn').addEventListener('click', refreshFiles);
+  $('searchInput').addEventListener('input', renderFileList);
+
+  // ---------- init ----------
+  loadCfg();
+  if(cfg && cfg.token && cfg.owner && cfg.repo){
+    setConnectedUI(true, 'Connected');
+    applyCfgToForms();
+    refreshFiles();
+  } else {
+    setConnectedUI(false);
+  }
+})();
+</script>
+</body>
+</html>
