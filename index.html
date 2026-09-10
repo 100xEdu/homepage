@@ -226,6 +226,7 @@
     <nav class="navlinks">
       <a href="#about">About</a>
       <a href="#timeline">Timeline</a>
+      <a href="#dropbox">Dropbox</a>
       <a href="#work">Work</a>
       <a href="#adhd-tools">ADHD Tools</a>
       <a href="#calendar">Calendar</a>
@@ -772,5 +773,33 @@
   }, 60000);
 })();
 </script>
+  <!-- NEW: Dropbox Section -->
+<section id="dropbox">
+  <div class="container">
+    <div class="sectionHead">
+      <div>
+        <h2>Dropbox.</h2>
+        <p>
+          Small personal file storage. Uploads are committed straight to your GitHub repo —
+          files show up as commits and are downloadable from any device you connect.
+        </p>
+      </div>
+      <a class="btn" href="dropbox.html" target="_blank" rel="noopener">Open full page ↗</a>
+    </div>
+
+    <div class="iframe-wrap" style="min-height:820px">
+      <iframe
+        src="dropbox.html"
+        style="width:100%;height:820px;border:none;display:block;"
+        title="Dropbox"
+        loading="lazy"
+      ></iframe>
+    </div>
+    <p class="small" style="margin-top:12px">
+      Requires <code>dropbox.html</code> to be in the same folder as this page.
+      Your GitHub token is stored only in your browser's localStorage — visitors cannot upload.
+    </p>
+  </div>
+</section>
 </body>
 </html>
